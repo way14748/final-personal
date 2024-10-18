@@ -1,0 +1,85 @@
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.backend.repository.visitingcare.RecommendMapper" >
+    <!--  차량 추천받는 쿼리문 (강아지 여러마리일때)  -->
+    <select id="recommendVehicle">
+        SELECT DISTINCT
+            v.v_Num AS vNum,
+            v.v_Name AS vName,
+            v.c_Size AS cSize,
+            v.s_Type AS sType,
+            v.manager,
+            v.region,
+            v.v_rating AS vRating,
+            v.v_review AS vReview,
+            v.price,
+            p.p_name AS pName
+        FROM vehicle v
+        JOIN pet p ON p.s_type = v.s_type
+        JOIN user u ON p.email = u.email
+        WHERE
+            u.email = #{email}
+            AND p.p_name = #{pName}
+            AND u.address LIKE CONCAT(v.region, '%')
+            AND v.c_size = p.c_Size
+        ORDER BY v.v_rating DESC
+        LIMIT 3;
+    </select>
+    <!--  차량 추천받는 쿼리문 (등록된 강아지가 없을때)  -->
+    <select id="recommendNoPet">
+        SELECT DISTINCT
+            v.v_Num AS vNum,
+            v.v_Name AS vName,
+            v.c_Size AS cSize,
+            v.s_Type AS sType,
+            v.manager,
+            v.region,
+            v.v_rating AS vRating,
+            v.v_review AS vReview,
+            v.price
+        FROM vehicle v
+        order by v_rating DESC
+        limit 3
+    </select>
+    <!--  차량 추천받는 쿼리문 (등록된 강아지가 한마리일때)  -->
+    <select id="recommendOnePet">
+        SELECT DISTINCT
+            v.v_Num AS vNum,
+            v.v_Name AS vName,
+            v.c_Size AS cSize,
+            v.s_Type AS sType,
+            v.manager,
+            v.region,
+            v.v_rating AS vRating,
+            v.v_review AS vReview,
+            v.price,
+            p.p_name AS pName
+        FROM
+            vehicle v
+        JOIN
+            pet p ON p.s_type = v.s_type
+        JOIN
+            user u ON p.email = u.email
+        WHERE
+            u.email = #{email}
+            AND u.address LIKE CONCAT(v.region, '%')
+            AND v.c_size = p.c_Size
+        ORDER BY
+            v.v_rating DESC
+        LIMIT 3;
+    </select>
+    <!--  (나의)등록된 강아지 조회 쿼리문  -->
+    <select id="getPetList">
+        SELECT p_name AS pName
+          FROM pet
+         WHERE email = #{email}
+    </select>
+    <!--  강아지 수 확인 쿼리문  -->
+    <select id="getPetCount">
+        SELECT count(*)AS pCount
+          FROM pet
+         WHERE email = #{email}
+    </select>
+
+</mapper>

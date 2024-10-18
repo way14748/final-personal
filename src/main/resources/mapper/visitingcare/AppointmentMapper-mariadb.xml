@@ -1,0 +1,142 @@
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.backend.repository.visitingcare.AppointmentMapper" >
+    <!-- 예약 등록 쿼리문   -->
+    <insert id="addAppointment">
+        insert into appointment (
+                                 email,
+                                 p_Num,
+                                 v_Num,
+                                 a_Date,
+                                 price,
+                                 c_Date,
+                                 c_Time,
+                                 a_Address,
+                                 road_Code,
+                                 ad_Address,
+                                 a_Name,
+                                 a_Phone
+                                )
+                        values (
+                                #{email},
+                                (SELECT p.p_Num
+                                   FROM pet p
+                                  WHERE p.p_Name= #{pName}
+                                    AND p.email = #{email}),
+                                #{vNum},
+                                CURRENT_TIMESTAMP(),
+                                (SELECT v.price
+                                   FROM vehicle v
+                                  WHERE v.v_Num= #{vNum}),
+                                #{cDate},
+                                #{cTime},
+                                #{aAddress},
+                                #{roadCode},
+                                #{adAddress},
+                                #{aName},
+                                #{aPhone}
+                               );
+    </insert>
+    <!--    예약 수정하는 쿼리문-->
+    <update id="updateAppointment">
+        update appointment SET v_Num = #{vNum},
+                                 a_Date  = now(),
+                                 price = (SELECT v.price
+                                   FROM vehicle v
+                                  WHERE v.v_Num=#{vNum}),
+                                 c_Date = #{cDate},
+                                 c_Time = #{cTime},
+                                 a_address = #{aAddress},
+                                 road_Code = #{roadCode},
+                                 ad_Address = #{adAddress},
+                                 a_name = #{aName},
+                                 a_phone = #{aPhone}
+        WHERE a_num= #{aNum}
+    </update>
+    <!--    예약 삭제하는 쿼리문 (삭제시 실제 데이터를 삭제하지 않고, 취소여부 컬럼값을 변경)-->
+    <update id="cancelAppointment">
+        UPDATE appointment
+        SET cancel_YN = 'Y'
+        WHERE a_num = #{aNum}
+    </update>
+    <!-- 예약조회 하는 쿼리문 -->
+    <select id="getAppointment">
+        SELECT DISTINCT
+               a.a_Num AS aNum,
+               a.a_Date AS aDate,
+               a.c_Date AS cDate,
+               a.c_Time AS cTime,
+               a.a_Name AS aName,
+               p.p_Name AS pName,
+               a.a_Phone AS aPhone,
+               a.a_Address AS aAddress,
+               a.ad_Address AS adAddress,
+               a.road_code AS roadCode,
+               a.v_Num AS vNum,
+               a.email,
+               v.v_Name AS vName,
+               v.s_Type AS sType,
+               r.comments,
+               r.r_Rating AS rRating,
+               r.r_Num AS rNum,
+               a.price,
+               a.cancel_YN AS cancelYn,
+               a.status
+          FROM appointment a
+          JOIN pet p ON p.p_num = a.p_num
+          JOIN vehicle v ON a.v_num = v.v_num
+          LEFT JOIN review r ON a.a_num = r.a_num
+          WHERE a.a_Num = #{aNum}
+    </select>
+    <!--모든 예약을 조회하는 쿼리문-->
+    <select id="getAllAppointments">
+        SELECT a_Num AS aNum,
+               email,
+               v_Num AS vNum,
+               c_Date AS cDate,
+               a_Date AS aDate,
+               status,
+               cancel_YN AS cancelYn
+          FROM appointment
+    </select>
+    <!--  나의 모든 예약 조회 쿼리문  -->
+    <select id="getMyAppointments">
+        SELECT DISTINCT
+            a.a_Num AS aNum,
+            a.a_Date AS aDate,
+            a.c_Date AS cDate,
+            a.c_Time AS cTime,
+            a.a_Name AS aName,
+            p.p_Name AS pName,
+            a.a_Phone AS aPhone,
+            a.a_Address AS aAddress,
+            a.ad_Address AS adAddress,
+            a.road_code AS roadCode,
+            a.v_num AS vNum,
+            v.v_name AS vName,
+            v.s_type AS sType,
+            r.r_rating AS rRating,
+            r.r_num AS rNum,
+            r.comments,
+            a.price,
+            a.status,
+            a.cancel_YN AS cancelYn
+        FROM appointment a
+        JOIN pawfit.pet p ON p.p_num = a.p_num
+        JOIN vehicle v ON a.v_num = v.v_num
+        LEFT JOIN review r ON r.a_num = a.a_num
+        WHERE a.email = #{email}
+        ORDER BY a.a_date DESC
+    </select>
+    <!--  예약이 되어있는지 확인하는 쿼리문  -->
+    <select id="getAppointmentYN">
+        SELECT count(*)
+          FROM appointment
+         WHERE v_num = #{vNum}
+           AND c_date = #{cDate}
+           AND c_time = #{cTime}
+           AND cancel_yn != 'Y'
+    </select>
+
+</mapper>

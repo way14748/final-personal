@@ -1,0 +1,45 @@
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.backend.repository.visitingcare.VehicleMapper" >
+    <!--  차량넘버에 맞는 차량 조회  -->
+    <select id="getVehicle">
+        SELECT v.v_Num AS vNum,
+               v.v_Name AS vName,
+               v.manager,
+               v.c_Size AS cSize,
+               v.s_Type AS sType,
+               v.region,
+               v.price,
+               v.v_rating AS vRating,
+               v.v_review AS vReview
+         FROM vehicle v
+        WHERE v.v_Num = #{vNum}
+    </select>
+
+    <!--  차량넘버에 맞는 차량 리뷰 조회  -->
+    <select id="getComments">
+        SELECT r_rating AS rRating,
+               email,
+               comments
+          FROM review
+         WHERE v_num = #{vNum}
+         ORDER BY r_date DESC
+    </select>
+
+    <!--  모든차량 조회  -->
+    <select id="getVehicles">
+        SELECT v.v_Num AS vNum,
+               v.v_Name AS vName,
+               v.manager,
+               v.c_Size AS cSize,
+               v.s_Type AS sType,
+               v.region,
+               v.price,
+               v.v_rating AS vRating,
+               v.v_review AS vReview
+         FROM vehicle v
+
+    </select>
+
+</mapper>
