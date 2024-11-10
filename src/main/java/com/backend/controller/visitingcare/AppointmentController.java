@@ -16,21 +16,20 @@ public class AppointmentController {
 
     @Autowired
     private AppointmentService appointmentService;
+
     // 예약 등록
     @PostMapping("/appointment")
-    public  ResponseEntity<Object> addAppointment(
+    public ResponseEntity<Object> addAppointment(
             //form-data로 예약 내역을 Appointment DTO에 담아서 받음
             @RequestBody Appointment appointment) {
-                    // 해당날짜와 시간에 차량이 예약이 가능한지 판단하는 메서드 (0 = 예약가능, 1 = 예약불가)
-                 int result = appointmentService.getAppointmentYN(appointment);
-
-                 if (result == 0) {
-                     int able = appointmentService.addAppointment(appointment);
-                     return ResponseEntity.ok(able);
-                 } else {   // 예약 불가시 글로벌 예외 핸들러에 예외 처리
-                     throw new InvalidRequestException("해당 시간에 예약이 되어있습니다.");
-                 }
+        try {
+            int result = appointmentService.addAppointment(appointment);
+            return ResponseEntity.ok(result);
+        } catch (InvalidRequestException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
+
     // 예약 조회
     @GetMapping("/appointment/{aNum}")
     public ResponseEntity<Object> getAppointment(
@@ -61,27 +60,23 @@ public class AppointmentController {
     @PutMapping("/appointment/delete/{aNum}")
     public ResponseEntity<Object> cancelAppointment(
             @PathVariable String aNum) {    //PathVariable로 예약번호 받아옴
-            int result =
-                    appointmentService.cancelAppointment(aNum);
-            if (result == 0) {  // 삭제 결과가 0일때
-                throw new ResourceNotFoundException("삭제 실패");
-            } else {    // 삭제 결과가 0이 아닐때
-                return ResponseEntity.ok("삭제 완료");
+            int result = appointmentService.cancelAppointment(aNum);
+            if (result == 1) {
+                return ResponseEntity.ok("예약 삭제 완료");
+            }else{
+                return ResponseEntity.badRequest().body("삭제 실패");
             }
     }
     // 예약 수정
     @PutMapping("/appointment/update")
     public ResponseEntity<Object> updateAppointment(
-            @RequestBody Appointment appointment) { //form-data로 appointment에 담아 정보를 받아옴
-            // 해당시간, 날짜에 해당차량이 예약이 되어 있는지 확인
-            int aCount = appointmentService.getAppointmentYN(appointment);
-
-            if (aCount == 0) {  // 예약이 안되어 있을때
-                int able = appointmentService.updateAppointment(appointment);
-                return ResponseEntity.ok(able);
-            } else {    // 예약이 되어있을때 글로벌 예외처리
-                throw new InvalidRequestException("해당 시간에 예약이 되어있습니다.");
-                }
+            @RequestBody Appointment appointment) {
+            try {
+                int result = appointmentService.updateAppointment(appointment);
+                return ResponseEntity.ok(result);
+            } catch (InvalidRequestException e) {
+                return ResponseEntity.badRequest().body(e.getMessage());
+            }
         }
     // 나의 모든 예약 조회
     @GetMapping("/myAppointments")
